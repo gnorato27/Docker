@@ -1,0 +1,51 @@
+# Observium and MariaDB container
+# Maintained by somsakc@hotmail.com
+
+version: '3'
+
+services:
+  observiumdb:
+       image: mariadb:latest
+       container_name: observium_db
+       environment:
+         - MYSQL_ROOT_PASSWORD=passw0rd
+         - MYSQL_USER=observium
+         - MYSQL_PASSWORD=passw0rd
+         - MYSQL_DATABASE=observium
+         - TZ=America/Panama
+       volumes:
+         - /docker/observium/data:/var/lib/mysql
+#         - /home/docker/observium/mysql:/docker-entrypoint-initdb.d
+       networks:
+         - back-tier
+       ports:
+        - "3306:3306"
+       restart: always
+
+  observiumap:
+       image: mbixtech/observium
+       container_name: observium_app
+       environment:
+         - OBSERVIUM_ADMIN_USER=admin
+         - OBSERVIUM_ADMIN_PASS=passw0rd
+         - OBSERVIUM_DB_HOST=observiumdb
+         - OBSERVIUM_DB_NAME=observium
+         - OBSERVIUM_DB_USER=observium
+         - OBSERVIUM_DB_PASS=passw0rd
+#         - OBSERVIUM_BASE_URL=http://192.168.0.4:8888
+         - TZ=America/Panama
+       volumes:
+         - /docker/observium/logs:/opt/observium/logs
+#         - /home/docker/observium/lock:/opt/observium/lock
+         - /docker/observium/rrd:/opt/observium/rrd
+       networks:
+         - back-tier
+       ports:
+         - "8888:80"
+       restart: always
+       depends_on:
+         - observiumdb
+
+networks:
+  back-tier:
+      driver: bridge
